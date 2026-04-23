@@ -1,0 +1,14 @@
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-134753/act2023v2-bati3d-esch-sur-alzette.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120357/act2023v2-bati3d-niederanven.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120425/act2023v2-bati3d-mondorf-les-bains.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120235/act2023v2-bati3d-preizerdaul.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120231/act2023v2-bati3d-putscheid.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120019/act2023v2-bati3d-schengen.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120005/act2023v2-bati3d-schifflange.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-120038/act2023v2-bati3d-sanem.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115915/act2023v2-bati3d-strassen.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115905/act2023v2-bati3d-tandel.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115826/act2023v2-bati3d-vallee-de-lernz.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115809/act2023v2-bati3d-waldbillig.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115849/act2023v2-bati3d-troisvierges.zip
+https://download.data.public.lu/resources/base-de-donnees-nationale-des-batiments-3d-2023/20260325-115800/act2023v2-bati3d-walferdange.zip

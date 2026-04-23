@@ -3,8 +3,8 @@ import requests
 from urllib.parse import urlparse
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 # =========================
 # 创建带重试的 session
 # =========================
@@ -38,14 +38,17 @@ def download_file(session, url, save_path, timeout=20):
     filepath = os.path.join(save_path, filename)
     temp_path = filepath + ".part"
 
-    headers = {}
+    # 已完成直接跳过
+    if os.path.exists(filepath):
+        print(f"⏭ 已存在，跳过: {filename}")
+        return True
 
-    # 断点续传
+    headers = {}
+    downloaded = 0
+
     if os.path.exists(temp_path):
         downloaded = os.path.getsize(temp_path)
         headers["Range"] = f"bytes={downloaded}-"
-    else:
-        downloaded = 0
 
     try:
         with session.get(url, stream=True, timeout=timeout, headers=headers) as r:
@@ -54,15 +57,26 @@ def download_file(session, url, save_path, timeout=20):
                 return False
 
             if r.status_code not in (200, 206):
-                print(f"⚠️ 状态码异常 {r.status_code}: {url}")
+                print(f"⚠️ 状态码异常 {r.status_code}")
                 return False
+
+            total_size = int(r.headers.get("content-length", 0)) + downloaded
 
             mode = "ab" if downloaded > 0 else "wb"
 
-            with open(temp_path, mode) as f:
-                for chunk in r.iter_content(chunk_size=8192):
+            with open(temp_path, mode) as f, tqdm(
+                total=total_size,
+                initial=downloaded,
+                unit='B',
+                unit_scale=True,
+                desc=filename,
+                ncols=80
+            ) as pbar:
+
+                for chunk in r.iter_content(chunk_size=1024*256):
                     if chunk:
                         f.write(chunk)
+                        pbar.update(len(chunk))
 
         os.rename(temp_path, filepath)
         print(f"✅ 完成: {filename}")
@@ -77,43 +91,53 @@ def download_file(session, url, save_path, timeout=20):
 # 主流程
 # =========================
 def main():
-    # 输入目录
     save_dir = input("请输入下载保存目录: ").strip()
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    os.makedirs(save_dir, exist_ok=True)
 
-    # 读取 urls.txt
     script_dir = os.path.dirname(os.path.abspath(__file__))
     url_file = os.path.join(script_dir, "urls.txt")
-
-    if not os.path.exists(url_file):
-        print(f"❌ 未找到 urls.txt: {url_file}")
-        return
 
     with open(url_file, "r", encoding="utf-8") as f:
         urls = [line.strip() for line in f if line.strip()]
 
     print(f"\n共 {len(urls)} 个任务\n")
 
-    session = create_session()
-
     success = 0
     fail = 0
 
-    for i, url in enumerate(urls, 1):
-        print(f"\n[{i}/{len(urls)}] {url}")
+    # 👇 并行线程数（可调）
+    MAX_WORKERS = 6
 
-        ok = download_file(session, url, save_dir)
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {
+            executor.submit(download_file, create_session(), url, save_dir): url
+            for url in urls
+        }
 
-        if ok:
-            success += 1
-        else:
-            fail += 1
+        failed_urls = []
+
+        for future in as_completed(futures):
+            url = futures[future]
+            try:
+                ok = future.result()
+                if ok:
+                    success += 1
+                else:
+                    fail += 1
+                    failed_urls.append(url)
+            except Exception as e:
+                print(f"⚠️ 线程异常: {url} -> {e}")
+                fail += 1
+                failed_urls.append(url)
 
     print("\n======================")
     print(f"完成: {success}")
     print(f"失败: {fail}")
     print("======================")
+    if failed_urls:
+        print("\n❌ 失败链接列表：")
+        for u in failed_urls:
+            print(u)
 
 
 if __name__ == "__main__":
