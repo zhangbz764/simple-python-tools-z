@@ -29,19 +29,14 @@ def get_filename_from_url(url):
     name = os.path.basename(path)
     return name if name else "downloaded_file"
 
-
-# =========================
-# 单文件下载（支持断点续传）
-# =========================
 def download_file(session, url, save_path, timeout=20):
     filename = get_filename_from_url(url)
     filepath = os.path.join(save_path, filename)
     temp_path = filepath + ".part"
 
-    # 已完成直接跳过
+    # 已完成直接跳过（静默 or 简短提示）
     if os.path.exists(filepath):
-        print(f"⏭ 已存在，跳过: {filename}")
-        return True
+        return True  # 建议静默，避免刷屏
 
     headers = {}
     downloaded = 0
@@ -53,37 +48,36 @@ def download_file(session, url, save_path, timeout=20):
     try:
         with session.get(url, stream=True, timeout=timeout, headers=headers) as r:
             if r.status_code == 404:
-                print(f"❌ 404: {url}")
+                tqdm.write(f"❌ 404: {filename}")
                 return False
 
             if r.status_code not in (200, 206):
-                print(f"⚠️ 状态码异常 {r.status_code}")
+                tqdm.write(f"❌ HTTP {r.status_code}: {filename}")
                 return False
 
             total_size = int(r.headers.get("content-length", 0)) + downloaded
-
             mode = "ab" if downloaded > 0 else "wb"
 
             with open(temp_path, mode) as f, tqdm(
                 total=total_size,
                 initial=downloaded,
-                unit='B',
+                unit="B",
                 unit_scale=True,
                 desc=filename,
-                ncols=80
+                ncols=80,
+                leave=False   # 👈 关键：完成后自动消失
             ) as pbar:
 
-                for chunk in r.iter_content(chunk_size=1024*256):
+                for chunk in r.iter_content(chunk_size=1024 * 256):
                     if chunk:
                         f.write(chunk)
                         pbar.update(len(chunk))
 
         os.rename(temp_path, filepath)
-        print(f"✅ 完成: {filename}")
         return True
 
     except Exception as e:
-        print(f"⚠️ 下载失败: {url} -> {e}")
+        tqdm.write(f"❌ 失败: {filename} ({e})")
         return False
 
 
