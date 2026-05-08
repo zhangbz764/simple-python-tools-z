@@ -29,6 +29,14 @@ def get_filename_from_url(url):
     name = os.path.basename(path)
     return name if name else "downloaded_file"
 
+def download_with_retry(session, url, save_path, retries=5):
+    for i in range(retries):
+        ok = download_file(session, url, save_path)
+        if ok:
+            return True
+        print(f"重试 {i+1}/{retries}: {url}")
+    return False
+
 def download_file(session, url, save_path, timeout=20):
     filename = get_filename_from_url(url)
     filepath = os.path.join(save_path, filename)
@@ -100,11 +108,11 @@ def main():
     fail = 0
 
     # 👇 并行线程数（可调）
-    MAX_WORKERS = 6
-
+    MAX_WORKERS = 3
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = {
-            executor.submit(download_file, create_session(), url, save_dir): url
+            executor.submit(download_with_retry, create_session(), url, save_dir)
+            # executor.submit(download_file, create_session(), url, save_dir): url
             for url in urls
         }
 
